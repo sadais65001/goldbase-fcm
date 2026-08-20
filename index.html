@@ -405,10 +405,14 @@
     form.append('description', desc);
     form.append('type', type);
     form.append('link', link);
+
     if (selectedFile) {
-        const ext = (selectedFile.name.split('.').pop() || 'jpg').replace(/[^a-zA-Z0-9]/g, '') || 'jpg';
-        form.append('image', selectedFile, `photo_${Date.now()}.${ext}`);
+      const ext = (selectedFile.name.split('.').pop() || 'jpg').toLowerCase().replace(/[^a-z0-9]/g, '') || 'jpg';
+      const validType = selectedFile.type && /^[\w-]+\/[\w.+-]+$/.test(selectedFile.type) ? selectedFile.type : 'image/jpeg';
+      const cleanBlob = new Blob([selectedFile], { type: validType });
+      form.append('image', cleanBlob, `photo_${Date.now()}.${ext}`);
     }
+
 
 
     try {
