@@ -405,7 +405,11 @@
     form.append('description', desc);
     form.append('type', type);
     form.append('link', link);
-    if (selectedFile) form.append('image', selectedFile);
+    if (selectedFile) {
+        const ext = (selectedFile.name.split('.').pop() || 'jpg').replace(/[^a-zA-Z0-9]/g, '') || 'jpg';
+        form.append('image', selectedFile, `photo_${Date.now()}.${ext}`);
+    }
+
 
     try {
       const res = await fetch(BACKEND_URL, {
