@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GoldBase — Notification Manager</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=Montserrat:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0b0d10;
+    --panel:#14171b;
+    --panel-2:#1b1f24;
+    --border:#2a2f36;
+    --gold:#FFD700;
+    --gold-dim:#c9ad3f;
+    --text:#eef0f2;
+    --text-dim:#9aa1a9;
+    --danger:#ff5c5c;
+    --success:#4ade80;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:
+      radial-gradient(ellipse 900px 500px at 15% -10%, rgba(255,215,0,0.07), transparent),
+      var(--bg);
+    color:var(--text);
+    font-family:'Montserrat',sans-serif;
+    min-height:100vh;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:24px;
+  }
+  h1,h2,.brand{font-family:'Poppins',sans-serif;}
+
+  /* Gate screen */
+  #gate{
+    width:100%;
+    max-width:380px;
+    background:var(--panel);
+    border:1px solid var(--border);
+    border-radius:16px;
+    padding:36px 28px;
+    text-align:center;
+  }
+  #gate .brand{
+    font-size:22px;
+    font-weight:700;
+    letter-spacing:0.5px;
+    color:var(--gold);
+    margin-bottom:4px;
+  }
+  #gate .sub{color:var(--text-dim); font-size:13px; margin-bottom:28px;}
+  #gate input{
+    width:100%;
+    padding:13px 14px;
+    background:var(--panel-2);
+    border:1px solid var(--border);
+    border-radius:10px;
+    color:var(--text);
+    font-size:14px;
+    margin-bottom:14px;
+    outline:none;
+  }
+  #gate input:focus{border-color:var(--gold-dim);}
+  #gate button, .primary-btn{
+    width:100%;
+    padding:13px;
+    border:none;
+    border-radius:10px;
+    background:linear-gradient(135deg,var(--gold),var(--gold-dim));
+    color:#161300;
+    font-weight:700;
+    font-size:14px;
+    letter-spacing:0.3px;
+    cursor:pointer;
+    transition:transform .12s ease, box-shadow .12s ease;
+  }
+  #gate button:hover, .primary-btn:hover{
+    transform:translateY(-1px);
+    box-shadow:0 6px 18px rgba(255,215,0,0.18);
+  }
+  #gateError{color:var(--danger); font-size:12.5px; margin-top:10px; min-height:16px;}
+
+  /* Main app */
+  #app{width:100%; max-width:560px; display:none;}
+  .header{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    margin-bottom:22px;
+  }
+  .header .brand{font-size:19px; color:var(--gold); font-weight:700;}
+  .header .sub{color:var(--text-dim); font-size:12px; margin-top:2px;}
+  .logout{
+    background:none; border:1px solid var(--border); color:var(--text-dim);
+    font-size:12px; padding:7px 12px; border-radius:8px; cursor:pointer;
+    font-family:'Montserrat',sans-serif;
+  }
+  .logout:hover{border-color:var(--danger); color:var(--danger);}
+
+  .card{
+    background:var(--panel);
+    border:1px solid var(--border);
+    border-radius:16px;
+    padding:26px;
+  }
+
+  .field{margin-bottom:20px;}
+  .field label{
+    display:block;
+    font-size:12.5px;
+    font-weight:600;
+    color:var(--text-dim);
+    text-transform:uppercase;
+    letter-spacing:0.6px;
+    margin-bottom:8px;
+  }
+  .field .hint{font-size:11.5px; color:var(--text-dim); margin-top:6px; font-weight:400;}
+
+  input[type=text], textarea, select{
+    width:100%;
+    padding:12px 13px;
+    background:var(--panel-2);
+    border:1px solid var(--border);
+    border-radius:10px;
+    color:var(--text);
+    font-size:14px;
+    font-family:'Montserrat',sans-serif;
+    outline:none;
+    resize:vertical;
+  }
+  input[type=text]:focus, textarea:focus, select:focus{border-color:var(--gold-dim);}
+  textarea{min-height:80px;}
+
+  .seg{
+    display:flex;
+    background:var(--panel-2);
+    border:1px solid var(--border);
+    border-radius:10px;
+    padding:4px;
+    gap:4px;
+  }
+  .seg button{
+    flex:1;
+    padding:10px;
+    border:none;
+    border-radius:7px;
+    background:transparent;
+    color:var(--text-dim);
+    font-family:'Montserrat',sans-serif;
+    font-weight:600;
+    font-size:13px;
+    cursor:pointer;
+  }
+  .seg button.active{
+    background:var(--gold);
+    color:#161300;
+  }
+
+  #channelWrap{display:none; margin-top:12px;}
+
+  .upload-box{
+    border:1.5px dashed var(--border);
+    border-radius:10px;
+    padding:18px;
+    text-align:center;
+    cursor:pointer;
+    color:var(--text-dim);
+    font-size:13px;
+    transition:border-color .12s ease;
+  }
+  .upload-box:hover{border-color:var(--gold-dim);}
+  .upload-box.has-image{padding:0; border-style:solid;}
+  #imgPreview{max-width:100%; max-height:180px; display:block; border-radius:8px; margin:0 auto;}
+  .remove-img{
+    display:none; margin-top:8px; background:none; border:none;
+    color:var(--danger); font-size:12px; cursor:pointer; font-family:'Montserrat',sans-serif;
+  }
+
+  #sendBtn{margin-top:6px;}
+  #sendBtn:disabled{opacity:0.55; cursor:not-allowed; transform:none; box-shadow:none;}
+
+  #statusMsg{
+    margin-top:16px;
+    font-size:13px;
+    padding:12px 14px;
+    border-radius:10px;
+    display:none;
+  }
+  #statusMsg.ok{display:block; background:rgba(74,222,128,0.1); color:var(--success); border:1px solid rgba(74,222,128,0.3);}
+  #statusMsg.err{display:block; background:rgba(255,92,92,0.1); color:var(--danger); border:1px solid rgba(255,92,92,0.3);}
+
+  .spinner{
+    display:inline-block; width:14px; height:14px;
+    border:2px solid rgba(22,19,0,0.3); border-top-color:#161300;
+    border-radius:50%; animation:spin .7s linear infinite; margin-right:8px; vertical-align:-2px;
+  }
+  @keyframes spin{to{transform:rotate(360deg);}}
+</style>
+</head>
+<body>
+
+  <!-- Secret key gate -->
+  <div id="gate">
+    <div class="brand">GoldBase</div>
+    <div class="sub">Notification Manager — enter access key</div>
+    <input type="text" id="secretInput" placeholder="Secret key" autocomplete="off">
+    <button onclick="unlockPortal()">Unlock</button>
+    <div id="gateError"></div>
+  </div>
+
+  <!-- Main portal -->
+  <div id="app">
+    <div class="header">
+      <div>
+        <div class="brand">GoldBase</div>
+        <div class="sub">Notification Manager</div>
+      </div>
+      <button class="logout" onclick="logout()">Log out</button>
+    </div>
+
+    <div class="card">
+
+      <div class="field">
+        <label>Send to</label>
+        <div class="seg">
+          <button type="button" id="targetAllBtn" class="active" onclick="setTarget('all')">All Users</button>
+          <button type="button" id="targetChannelBtn" onclick="setTarget('channel')">Specific Channel</button>
+        </div>
+        <div id="channelWrap">
+          <select id="channelSelect"></select>
+          <div class="hint">Edit the CHANNELS list at the top of this file's script to match your app's topic names.</div>
+        </div>
+      </div>
+
+      <div class="field">
+        <label>Title</label>
+        <input type="text" id="titleInput" placeholder="e.g. Gold prices just dropped" maxlength="65">
+      </div>
+
+      <div class="field">
+        <label>Description</label>
+        <textarea id="descInput" placeholder="Short notification body text" maxlength="200"></textarea>
+      </div>
+
+      <div class="field">
+        <label>Notification Type</label>
+        <select id="typeSelect" onchange="onTypeChange()">
+          <option value="simple">Simple (no action)</option>
+          <option value="link">External Link</option>
+          <option value="page">In-App Page</option>
+        </select>
+      </div>
+
+      <div class="field" id="linkWrap" style="display:none;">
+        <label id="linkLabel">Link URL</label>
+        <input type="text" id="linkInput" placeholder="https://... or in-app page id">
+      </div>
+
+      <div class="field">
+        <label>Photo (optional)</label>
+        <div class="upload-box" id="uploadBox" onclick="document.getElementById('fileInput').click()">
+          <span id="uploadText">Tap to choose an image</span>
+          <img id="imgPreview" style="display:none;">
+        </div>
+        <input type="file" id="fileInput" accept="image/*" style="display:none;" onchange="onFileChosen(event)">
+        <button type="button" class="remove-img" id="removeImgBtn" onclick="removeImage(event)">Remove photo</button>
+      </div>
+
+      <button class="primary-btn" id="sendBtn" onclick="sendNotification()">Send Notification</button>
+
+      <div id="statusMsg"></div>
+    </div>
+  </div>
+
+<script>
+  // ====== CONFIG — edit these ======
+  const BACKEND_URL = "https://YOUR-RENDER-APP.onrender.com/send-notification"; // <-- set your Render endpoint
+  const CHANNELS = [
+    { id: "price_alerts",    label: "Price Alerts" },
+    { id: "app_updates",     label: "App Updates" },
+    { id: "merchant_offers", label: "Merchant Offers" }
+  ]; // <-- edit to match your actual FCM topic names
+  // ===================================
+
+  let currentTarget = "all";
+  let selectedFile = null;
+
+  // Populate channel dropdown
+  const channelSelect = document.getElementById('channelSelect');
+  CHANNELS.forEach(ch => {
+    const opt = document.createElement('option');
+    opt.value = ch.id;
+    opt.textContent = ch.label;
+    channelSelect.appendChild(opt);
+  });
+
+  // Gate logic
+  if (sessionStorage.getItem('gb_notif_key')) {
+    showApp();
+  }
+
+  function unlockPortal(){
+    const key = document.getElementById('secretInput').value.trim();
+    if (!key){
+      document.getElementById('gateError').textContent = "Enter a key.";
+      return;
+    }
+    sessionStorage.setItem('gb_notif_key', key);
+    showApp();
+  }
+
+  function showApp(){
+    document.getElementById('gate').style.display = 'none';
+    document.getElementById('app').style.display = 'block';
+  }
+
+  function logout(){
+    sessionStorage.removeItem('gb_notif_key');
+    document.getElementById('app').style.display = 'none';
+    document.getElementById('gate').style.display = 'block';
+    document.getElementById('secretInput').value = '';
+  }
+
+  function setTarget(t){
+    currentTarget = t;
+    document.getElementById('targetAllBtn').classList.toggle('active', t === 'all');
+    document.getElementById('targetChannelBtn').classList.toggle('active', t === 'channel');
+    document.getElementById('channelWrap').style.display = t === 'channel' ? 'block' : 'none';
+  }
+
+  function onTypeChange(){
+    const type = document.getElementById('typeSelect').value;
+    const wrap = document.getElementById('linkWrap');
+    const label = document.getElementById('linkLabel');
+    if (type === 'link'){
+      wrap.style.display = 'block';
+      label.textContent = 'External Link URL';
+    } else if (type === 'page'){
+      wrap.style.display = 'block';
+      label.textContent = 'In-App Page ID';
+    } else {
+      wrap.style.display = 'none';
+    }
+  }
+
+  function onFileChosen(e){
+    const file = e.target.files[0];
+    if (!file) return;
+    selectedFile = file;
+    const reader = new FileReader();
+    reader.onload = ev => {
+      document.getElementById('imgPreview').src = ev.target.result;
+      document.getElementById('imgPreview').style.display = 'block';
+      document.getElementById('uploadText').style.display = 'none';
+      document.getElementById('uploadBox').classList.add('has-image');
+      document.getElementById('removeImgBtn').style.display = 'inline-block';
+    };
+    reader.readAsDataURL(file);
+  }
+
+  function removeImage(e){
+    e.stopPropagation();
+    selectedFile = null;
+    document.getElementById('fileInput').value = '';
+    document.getElementById('imgPreview').style.display = 'none';
+    document.getElementById('uploadText').style.display = 'inline';
+    document.getElementById('uploadBox').classList.remove('has-image');
+    document.getElementById('removeImgBtn').style.display = 'none';
+  }
+
+  function showStatus(msg, ok){
+    const el = document.getElementById('statusMsg');
+    el.textContent = msg;
+    el.className = ok ? 'ok' : 'err';
+  }
+
+  async function sendNotification(){
+    const title = document.getElementById('titleInput').value.trim();
+    const desc = document.getElementById('descInput').value.trim();
+    const type = document.getElementById('typeSelect').value;
+    const link = document.getElementById('linkInput').value.trim();
+    const channel = document.getElementById('channelSelect').value;
+
+    if (!title || !desc){
+      showStatus('Title and description are required.', false);
+      return;
+    }
+    if ((type === 'link' || type === 'page') && !link){
+      showStatus('Please provide the link / page id for this notification type.', false);
+      return;
+    }
+
+    const btn = document.getElementById('sendBtn');
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner"></span>Sending...';
+
+    const form = new FormData();
+    form.append('target', currentTarget);
+    form.append('channel', currentTarget === 'channel' ? channel : '');
+    form.append('title', title);
+    form.append('description', desc);
+    form.append('type', type);
+    form.append('link', link);
+    if (selectedFile) form.append('image', selectedFile);
+
+    try {
+      const res = await fetch(BACKEND_URL, {
+        method: 'POST',
+        headers: { 'X-Secret-Key': sessionStorage.getItem('gb_notif_key') },
+        body: form
+      });
+      const data = await res.json();
+
+      if (!res.ok){
+        if (res.status === 401){
+          showStatus('Invalid secret key. Logging out.', false);
+          setTimeout(logout, 1200);
+        } else {
+          showStatus(data.error || 'Failed to send notification.', false);
+        }
+      } else {
+        showStatus(`Sent to "${data.topic}" — message id ${data.message_id}`, true);
+        document.getElementById('titleInput').value = '';
+        document.getElementById('descInput').value = '';
+        document.getElementById('linkInput').value = '';
+        removeImage({stopPropagation(){}});
+      }
+    } catch (err){
+      showStatus('Network error: ' + err.message, false);
+    } finally {
+      btn.disabled = false;
+      btn.textContent = 'Send Notification';
+    }
+  }
+</script>
+</body>
+</html>
